@@ -3,7 +3,6 @@
 (defparameter *font-name* "Sans")
 (defparameter *font-size* 18)
 (defparameter *font-window* nil)
-(defparameter *select-window* nil)
 
 (defparameter *OP* t)
 
@@ -11,22 +10,15 @@
     (setf *font-name* "Sans")
     (setf *font-name* "MSゴシック"))
 
+(defparameter *font16* (concatenate 'string *font-name* " " "16"))
 (defparameter *font18* (concatenate 'string *font-name* " " "18"))
 (defparameter *font20* (concatenate 'string *font-name* " " "20"))
 (defparameter *font22* (concatenate 'string *font-name* " " "22"))
 (defparameter *font24* (concatenate 'string *font-name* " " "24"))
 
 (defstruct player
-  (text nil) ;;文章
-  (ask nil)  ;;選択肢
-  (ask_skill nil) ;;技能選択肢
   (mogep 0) ;;モゲポイント
-  (tp nil) ;;ターニングポイント
-  (scene 0)
-  (next 0) ;;次のシーン
   (game 0) ;;op:
-  (ending nil)
-  (select_window nil)
   ;;能力
   (str 0)
   (con 0)
