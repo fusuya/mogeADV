@@ -3,7 +3,7 @@
 (defparameter *font-name* "Sans")
 (defparameter *font-size* 18)
 (defparameter *font-window* nil)
-
+(defparameter *endroll* t)
 (defparameter *OP* t)
 
 (if (equal "Linux" (software-type))
@@ -75,3 +75,13 @@
     ("心理学"      5)
     ))
 
+
+(defparameter *end-text*
+  '("原案:もげぞう"
+    "シナリオ:もげぞう"
+    "演出:もげぞう"
+    "主演:もげぞう"
+    "撮影:もげぞう"
+    "編集:もげぞう"
+    "プログラム:もげぞう、予定地"
+    "監督:もげぞう"))
