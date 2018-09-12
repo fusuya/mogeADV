@@ -83,7 +83,7 @@
          (f1 (make-instance 'frame :master f))
          (f2 (make-instance 'frame :master f1))
          (l1 (make-instance 'label :master f1
-                                   :text (format nil "好きな技能に初期値〜99の間で200ポイント分振り分けてください~%(初期値未満にはできません)")
+                                   :text (format nil "好きな技能に初期値〜99の間で200ポイント分振り分けてください~%(初期値未満にはできません)~%()内の数字が初期値")
                                    :font *font16* :wraplength *window-w*))
          (l2 (make-instance 'label :master f1 :text (format nil "残り~dポイント" point)
                                    :font *font16*))
@@ -91,7 +91,8 @@
     (pack (list f1 l1 l2 f2) :pady  10)
     (loop for s in (player-skill p)
 	        for i from 0
-	        do (let ((l1 (make-instance 'label :text (car s) :master f2 :font *font16*))
+	        do (let ((l1 (make-instance 'label :text (format nil "~a(~d)" (car s) (cadr s))
+                                             :master f2 :font *font16*))
                    (t1 (make-instance 'spinbox :from (cadr s) :to 99 :increment 1 :font *font16*
 					                                     :text (format nil "~d" (cadr s))
 					                                     :master f2 :width 3)))
@@ -133,14 +134,15 @@
              (sleep 0.1)
              (process-events))))
 
-(defun endroll2 (p f l1 lf2 jump-func)
+;;エンドロール
+(defun endroll (p f l1 lf2 jump-func)
   (let* ((btn-frame (make-instance 'labelframe :master f :text "選択肢"))
          (skill-frame (make-instance 'frame :master f))
          (re-btn (make-instance 'button :master btn-frame :text "もう一度"))
          (end-btn (make-instance 'button :master btn-frame :text "終わる"))
          (label-list nil) (x (floor (window-width *tk*) 2))
          (text-num (length *end-text*))
-         (mozi-w 26) (endroll t))
+         (mozi-w 26) (endrolling t))
     (pack btn-frame :before lf2)
     (pack skill-frame :before lf2)
     (pack (list re-btn end-btn))
@@ -148,7 +150,7 @@
     (setf (command re-btn)
           (lambda ()
             (destroy btn-frame)
-            (setf endroll nil)
+            (setf endrolling nil)
             (dolist (l label-list)
               (destroy (car l)))
             (game-init p) ;;ポイント初期化
@@ -157,10 +159,10 @@
             (setting-skill-point p skill-frame jump-func)))
     (setf (command end-btn)
           (lambda ()
-            (setf endroll nil
+            (setf endrolling nil
                   *exit-mainloop* t)))
 
-    (loop while endroll ;;エンドロール表示
+    (loop while endrolling ;;エンドロール表示
           do (when (and (> text-num (length label-list))
                         (or (null label-list) (> (- (window-height *tk*) 100) (cadr (car label-list)))))
                (push (list (make-instance 'label :text (format nil "~a" (nth (length label-list) *end-text*))
@@ -176,31 +178,6 @@
              (sleep 0.05)
              (process-events))))
 
-;;640 26
-;;エンドロール
-(defun endroll (lf2)
-  (let ((label-list nil) (x (floor (window-width *tk*) 2))
-        (text-num (length *end-text*))
-        (mozi-w 26)) ;;font18のときの文字の幅
-    (loop while *endroll*
-          do (when (and (> text-num (length label-list))
-                        (or (null label-list) (> (- (window-height *tk*) 100) (cadr (car label-list)))))
-               (push (list (make-instance 'label :text (format nil "~a" (nth (length label-list) *end-text*))
-                                                 :font *font18* :master lf2)
-                           (window-height *tk*)
-                           (- x (* mozi-w (floor (length (nth (length label-list) *end-text*)) 2))))
-                     label-list))
-             (dolist (l label-list)
-               (decf (cadr l) 2)
-               (place-forget (car l))
-               (when (> (cadr l) 0)
-                 (place (car l) (caddr l) (cadr l))))
-             (sleep 0.05)
-             (process-events))
-    (setf *endroll* t)
-    (dolist (l label-list)
-      (destroy (car l)))
-    (process-events)))
 
 ;;ゲーム本編
 (defun game-start (p f)
@@ -262,37 +239,11 @@
                              (jump not-less-label)
                              (jump less-label))))
                       (end
-                       (restart-or-end))
-                      ;; (let ((btn-frame (make-instance 'frame :master f)))
-                      ;;   (pack btn-frame :before lf2)
-                      ;;   (ending p btn-frame #'jump)))
+                       (endroll p f l1 lf2 #'jump))
                       (t
                        (error "unknown op"))))
                    (t
                     (error "illegal instruction")))))
-             (restart-or-end () ;;todo
-               (endroll2 p f l1 lf2 #'jump))
-             ;; (let* ((btn-frame (make-instance 'labelframe :master f :text "選択肢"))
-             ;;        (skill-frame (make-instance 'frame :master f))
-             ;;        (re-btn (make-instance 'button :master btn-frame :text "もう一度"))
-             ;;        (end-btn (make-instance 'button :master btn-frame :text "終わる")))
-             ;;   (pack btn-frame :before lf2)
-             ;;   (pack skill-frame :before lf2)
-             ;;   (pack (list re-btn end-btn))
-             ;;   (pack-forget l1)
-             ;;   (setf (command re-btn)
-             ;;         (lambda ()
-             ;;           (destroy btn-frame)
-             ;;           (setf *endroll* nil)
-             ;;           (game-init p) ;;ポイント初期化
-             ;;           (pack l1 :padx 5 :pady 5 :fill :both :expand t)
-             ;;           (setf (text l1) "")
-             ;;           (setting-skill-point p skill-frame #'jump)))
-             ;;   (setf (command end-btn)
-             ;;         (lambda ()
-             ;;           (setf *endroll* nil)
-             ;;           (setf *exit-mainloop* t)))
-             ;;   (endroll lf2)))
              (show-next-line ()
                (when (not (eq 'text curr-op)) (error "not executing text"))
                (if (null curr-args)
